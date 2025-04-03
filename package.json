@@ -1,0 +1,39 @@
+{
+  "name": "bookmark-manager-extension",
+  "private": true,
+  "version": "1.0.0",
+  "description": "浏览器收藏箱扩展，支持设置收藏时间范围和提醒功能",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:check": "vue-tsc && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "chrome-extension",
+    "bookmark",
+    "reminder"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "pinia": "^3.0.1",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@samrum/vite-plugin-web-extension": "4.1.0",
+    "@tailwindcss/postcss": "^4.0.14",
+    "@types/chrome": "0.0.309",
+    "@types/node": "^22.13.10",
+    "@vitejs/plugin-vue": "4.5.2",
+    "autoprefixer": "10.4.17",
+    "postcss": "8.4.35",
+    "tailwindcss": "3.4.1",
+    "typescript": "^5.8.2",
+    "vite": "4.5.2",
+    "vue-tsc": "^3.0.0-alpha.2"
+  },
+  "packageManager": "pnpm@9.14.4+sha512.c8180b3fbe4e4bca02c94234717896b5529740a6cbadf19fa78254270403ea2f27d4e1d46a08a0f56c89b63dc8ebfd3ee53326da720273794e6200fcf0d184ab"
+}
