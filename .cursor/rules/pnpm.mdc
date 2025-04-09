@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+---
+description: 命令行运行
+alwaysApply: false
+---
+
+# Pnpm 运行规则
+
+## 运行环境
+
+- 本地安装了 nvm 和 node@22，运行之前先切换版本
+- 命令行工具默认使用 pnpm

@@ -45,12 +45,16 @@
           <!-- 书签内容 -->
           <div class="p-2">
             <div class="flex justify-between items-start">
-              <h3 class="text-sm font-semibold truncate max-w-[180px]"
-                :class="isOverdue(bookmark) ? 'text-red-600 group-hover:text-red-700' : 'text-gray-700 group-hover:text-indigo-700'"
-                :title="bookmark.title">
-                {{ bookmark.title }}
-              </h3>
-              <span class="text-[10px] text-gray-400 whitespace-nowrap ml-1">{{ formatDate(bookmark.addedTime) }}</span>
+              <div class="flex-1 min-w-0">
+                <input 
+                  v-model="bookmark.title"
+                  @blur="updateBookmarkTitle(bookmark)"
+                  class="text-sm font-semibold w-full bg-transparent border-0 p-0 focus:outline-none focus:ring-0 truncate"
+                  :class="isOverdue(bookmark) ? 'text-red-600 group-hover:text-red-700' : 'text-gray-700 group-hover:text-indigo-700'"
+                  :title="bookmark.title"
+                />
+              </div>
+              <span class="text-[10px] text-gray-400 whitespace-nowrap ml-1">{{ formatAddedDate(bookmark.addedTime) }}</span>
             </div>
             
             <a :href="bookmark.url" target="_blank" 
@@ -59,33 +63,32 @@
               {{ formatUrl(bookmark.url) }}
             </a>
             
-            <!-- 预期查看时间 -->
-            <div v-if="bookmark.expectedViewTime" class="mt-1 flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" 
-                :class="[
-                  'h-3 w-3 mr-1', 
-                  isOverdue(bookmark) ? 'text-red-500' : 'text-indigo-400'
-                ]" 
-                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span 
-                :class="[
-                  'text-[10px]', 
-                  isOverdue(bookmark) ? 'text-red-500 font-medium' : 'text-gray-500'
-                ]">
+            <!-- 时间选择器 -->
+            <div class="mt-2 flex items-center">
+              <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-gray-400 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <input
+                  type="date"
+                  :value="getDateInputValue(bookmark.expectedViewTime)"
+                  @change="(e: Event) => { 
+                    const target = e.target as HTMLInputElement;
+                    const date = new Date(target.value);
+                    bookmark.expectedViewTime = date.getTime();
+                    updateBookmarkTime(bookmark);
+                  }"
+                  class="text-xs text-gray-600 bg-transparent border-0 p-0 focus:outline-none focus:ring-0 w-[100px]"
+                  :min="getTodayDate()"
+                />
+              </div>
+              <span class="text-xs text-gray-400 ml-2">
                 {{ formatExpectedTime(bookmark.expectedViewTime) }}
-                <span v-if="isOverdue(bookmark)" class="text-red-600 ml-1">(已超时)</span>
               </span>
             </div>
             
             <!-- 标签和操作按钮 -->
-            <div class="mt-1.5 flex items-center justify-between">
-              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium"
-                :class="isOverdue(bookmark) ? 'bg-red-50 text-red-700' : 'bg-indigo-50 text-indigo-700'">
-                {{ getDomainName(bookmark.url) }}
-              </span>
-              
+            <div class="mt-1.5 flex items-center justify-end">
               <div class="flex items-center">
                 <button 
                   @click.stop="copyUrl(bookmark.url)"
@@ -136,6 +139,7 @@ interface Bookmark {
   url: string;
   addedTime: number;
   expectedViewTime?: number | null;
+  tag?: string;
 }
 
 const bookmarks = ref<Bookmark[]>([]);
@@ -193,22 +197,22 @@ const formatDate = (timestamp: number): string => {
 };
 
 // 格式化预期查看时间
-const formatExpectedTime = (timestamp: number): string => {
-  if (!timestamp) return '';
+const formatExpectedTime = (timestamp: number | null | undefined): string => {
+  if (!timestamp) return '未设置';
   
   const date = new Date(timestamp);
   const currentNow = new Date();
   
   // 相同的一天
   if (date.toDateString() === currentNow.toDateString()) {
-    return `今天 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    return '今天';
   }
   
   // 明天
   const tomorrow = new Date(currentNow);
   tomorrow.setDate(tomorrow.getDate() + 1);
   if (date.toDateString() === tomorrow.toDateString()) {
-    return `明天 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    return '明天';
   }
   
   // 本周内其他日期
@@ -216,11 +220,11 @@ const formatExpectedTime = (timestamp: number): string => {
   const diffDays = Math.round((date.getTime() - currentNow.getTime()) / (1000 * 60 * 60 * 24));
   
   if (diffDays < 7 && diffDays > 0) {
-    return `${days[date.getDay()]} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    return days[date.getDay()];
   }
   
   // 其他日期
-  return `${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  return `${date.getMonth() + 1}月${date.getDate()}日`;
 };
 
 // 格式化URL
@@ -330,6 +334,50 @@ const addTestBookmark = () => {
     bookmarks.value = testBookmarks;
     isSyncing.value = false;
   });
+};
+
+const updateBookmarkTime = (bookmark: Bookmark) => {
+  console.log('更新书签预期查看时间:', bookmark.expectedViewTime)
+  // 将日期字符串转换为时间戳
+  const timestamp = bookmark.expectedViewTime ? new Date(bookmark.expectedViewTime).getTime() : null
+  const updatedBookmarks = bookmarks.value.map(b => 
+    b.id === bookmark.id ? { ...b, expectedViewTime: timestamp } : b
+  )
+  bookmarks.value = updatedBookmarks
+  chrome.storage.sync.set({ bookmarks: updatedBookmarks }, () => {
+    console.log('书签预期查看时间已更新到存储')
+  })
+}
+
+const getTodayDate = () => {
+  const today = new Date()
+  return today.toISOString().split('T')[0]
+}
+
+const formatAddedDate = (timestamp: number): string => {
+  return new Date(timestamp).toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+};
+
+const updateBookmarkTitle = (bookmark: Bookmark) => {
+  console.log('更新书签标题:', bookmark.title)
+  const updatedBookmarks = bookmarks.value.map(b => 
+    b.id === bookmark.id ? { ...b, title: bookmark.title } : b
+  )
+  bookmarks.value = updatedBookmarks
+  chrome.storage.sync.set({ bookmarks: updatedBookmarks }, () => {
+    console.log('书签标题已更新到存储')
+  })
+}
+
+// 添加一个新的计算属性来处理日期输入框的值
+const getDateInputValue = (timestamp: number | null | undefined): string => {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  return date.toISOString().split('T')[0];
 };
 
 onMounted(() => {

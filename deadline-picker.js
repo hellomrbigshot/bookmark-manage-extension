@@ -58,8 +58,7 @@ function setDatetimeValue(date) {
   const year = date.getFullYear();
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
   const day = date.getDate().toString().padStart(2, '0');
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
   
-  datetimeInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+  // 设置时间为当天的开始（00:00）
+  datetimeInput.value = `${year}-${month}-${day}T00:00`;
 } 
