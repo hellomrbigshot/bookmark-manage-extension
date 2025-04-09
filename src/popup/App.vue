@@ -1,5 +1,5 @@
 <template>
-  <div class="w-80 min-h-[450px] max-h-[500px] bg-gradient-to-br from-blue-50 to-indigo-50 flex flex-col p-4 overflow-hidden">
+  <div class="w-full min-h-[450px] bg-gradient-to-br from-blue-50 to-indigo-50 flex flex-col p-4">
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-xl font-bold text-indigo-800">收藏箱</h1>
       <div class="text-xs text-indigo-500 flex items-center">
@@ -9,7 +9,7 @@
         <span>{{ new Date().toLocaleDateString() }}</span>
       </div>
     </div>
-    <BookmarkList class="flex-grow overflow-hidden" />
+    <BookmarkList class="flex-1" />
   </div>
 </template>
 
@@ -25,9 +25,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: transparent;
-  width: 320px;
-  height: 500px;
-  overflow: hidden;
+  width: 400px;
+  min-height: 450px;
 }
 
 ::-webkit-scrollbar {

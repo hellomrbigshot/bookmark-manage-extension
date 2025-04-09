@@ -1,7 +1,7 @@
 <template>
-  <div class="flex flex-col h-full min-h-[450px] max-h-[500px] w-80">
+  <div class="flex flex-col h-full w-full">
     <!-- 空状态设计 -->
-    <div v-if="bookmarks.length === 0" class="flex flex-col items-center justify-center flex-grow p-4 bg-white rounded-lg shadow-sm border border-indigo-100 text-center">
+    <div v-if="bookmarks.length === 0" class="flex flex-col items-center justify-center flex-1 p-4 bg-white rounded-lg shadow-sm border border-indigo-100 text-center">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-indigo-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
       </svg>
@@ -35,7 +35,7 @@
       </div>
 
       <!-- 书签列表 -->
-      <div class="overflow-y-auto space-y-1.5 flex-grow px-2">
+      <div class="flex-1 overflow-y-auto space-y-1.5 px-2">
         <div v-for="bookmark in filteredBookmarks" :key="bookmark.id" 
           :class="[
             'group bg-white rounded-md shadow-sm border overflow-hidden transition-all duration-200',
