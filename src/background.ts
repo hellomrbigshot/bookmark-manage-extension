@@ -1,7 +1,7 @@
 // 监听扩展安装事件
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Bookmark Manager Extension installed');
-  
+
   // 创建右键菜单
   chrome.contextMenus.create({
     id: 'addBookmark',
@@ -13,7 +13,7 @@ chrome.runtime.onInstalled.addListener(() => {
       console.error('创建右键菜单出错:', chrome.runtime.lastError);
     }
   });
-  
+
   // 创建添加收藏箱带预期时间的菜单
   chrome.contextMenus.create({
     id: 'addBookmarkWithDeadline',
@@ -25,7 +25,19 @@ chrome.runtime.onInstalled.addListener(() => {
       console.error('创建右键菜单出错:', chrome.runtime.lastError);
     }
   });
-  
+
+  // 创建清空收藏箱的菜单
+  chrome.contextMenus.create({
+    id: 'clearBookmarks',
+    title: '清空收藏箱',
+    contexts: ['action']
+  }, () => {
+    console.log('清空收藏箱菜单创建成功');
+    if (chrome.runtime.lastError) {
+      console.error('创建清空菜单出错:', chrome.runtime.lastError);
+    }
+  });
+
   // 初始化存储，确保有一个空的书签数组
   chrome.storage.sync.get('bookmarks', (result) => {
     if (!result.bookmarks) {
@@ -41,18 +53,34 @@ chrome.runtime.onInstalled.addListener(() => {
 // 监听右键菜单点击事件
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   console.log('右键菜单被点击:', info.menuItemId);
-  
+
   if (info.menuItemId === 'addBookmark') {
-    addBookmarkToStorage(info, tab);
+    addBookmarkToStorage(info, tab || {});
   } else if (info.menuItemId === 'addBookmarkWithDeadline') {
     // 打开设置预期时间的弹窗
     chrome.windows.create({
-      url: chrome.runtime.getURL('deadline-picker.html') + 
-           `?url=${encodeURIComponent(info.linkUrl || info.pageUrl || '')}` + 
-           `&title=${encodeURIComponent(tab?.title || '')}`,
+      url: chrome.runtime.getURL('deadline-picker.html') +
+        '?url=' + encodeURIComponent(info.pageUrl || info.linkUrl || '') +
+        '&title=' + encodeURIComponent(tab?.title || ''),
       type: 'popup',
       width: 400,
       height: 300
+    });
+  } else if (info.menuItemId === 'clearBookmarks') {
+    // 清空收藏箱
+    chrome.storage.sync.set({ bookmarks: [] }, () => {
+      if (chrome.runtime.lastError) {
+        console.error('清空收藏箱时发生错误:', chrome.runtime.lastError);
+        return;
+      }
+      console.log('收藏箱已清空');
+      // 发送通知
+      chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'icons/icon128.png',
+        title: '收藏箱',
+        message: '所有收藏已清空'
+      });
     });
   }
 });
@@ -64,22 +92,24 @@ interface BookmarkInfo {
 
 interface TabInfo {
   title?: string;
+  id?: number;
+  url?: string;
 }
 
 // 添加书签到存储的公共函数
 function addBookmarkToStorage(info: BookmarkInfo, tab: TabInfo, expectedViewTime: number | null = null) {
   const url = info.linkUrl || info.pageUrl || '';
   const title = tab?.title || url;
-  
+
   console.log('准备添加书签:', { title, url, expectedViewTime });
-  
+
   // 保存书签到同步存储
   chrome.storage.sync.get('bookmarks', (result) => {
     // 确保 bookmarks 是数组
     const bookmarks = Array.isArray(result.bookmarks) ? result.bookmarks : [];
-    
+
     console.log('获取到的书签数据类型:', typeof result.bookmarks, Array.isArray(result.bookmarks));
-    
+
     const newBookmark = {
       id: Date.now().toString(),
       title,
@@ -87,13 +117,13 @@ function addBookmarkToStorage(info: BookmarkInfo, tab: TabInfo, expectedViewTime
       addedTime: Date.now(),
       expectedViewTime
     };
-    
+
     console.log('添加新书签:', newBookmark);
     console.log('现有书签数量:', bookmarks.length);
-    
+
     // 避免使用展开运算符，以防止潜在的迭代错误
     const updatedBookmarks = bookmarks.concat([newBookmark]);
-    
+
     chrome.storage.sync.set({
       bookmarks: updatedBookmarks
     }, () => {
@@ -106,8 +136,8 @@ function addBookmarkToStorage(info: BookmarkInfo, tab: TabInfo, expectedViewTime
           type: 'basic',
           iconUrl: 'icons/icon128.png',
           title: '书签已添加',
-          message: expectedViewTime 
-            ? `"${title}" 已保存到收藏箱，预期查看时间：${new Date(expectedViewTime).toLocaleString()}` 
+          message: expectedViewTime
+            ? `"${title}" 已保存到收藏箱，预期查看时间：${new Date(expectedViewTime).toLocaleString()}`
             : `"${title}" 已保存到收藏箱并同步到你的所有设备`,
           priority: 2
         });
@@ -120,11 +150,11 @@ function addBookmarkToStorage(info: BookmarkInfo, tab: TabInfo, expectedViewTime
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'addBookmarkWithDeadline') {
     const { url, title, expectedViewTime } = message;
-    
+
     // 使用模拟的 info 和 tab 对象
     const info: BookmarkInfo = { linkUrl: url };
     const tab: TabInfo = { title };
-    
+
     addBookmarkToStorage(info, tab, expectedViewTime);
     sendResponse({ success: true });
   }
@@ -144,4 +174,4 @@ chrome.bookmarks.onChanged.addListener((id, changeInfo) => {
 });
 
 // 导出空对象以支持ES模块
-export {}; 
+export {};

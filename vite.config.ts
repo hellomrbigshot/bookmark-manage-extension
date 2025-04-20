@@ -37,7 +37,7 @@ const copyIconsPlugin = () => {
     writeBundle() {
       const iconsSource = path.resolve(__dirname, 'src/icons');
       const iconsTarget = path.resolve(__dirname, 'dist/icons');
-      
+
       // 确保目标目录存在
       if (!fs.existsSync(iconsTarget)) {
         fs.mkdirSync(iconsTarget, { recursive: true });
@@ -64,7 +64,7 @@ const copyAssetsPlugin = () => {
     writeBundle() {
       const assetsSource = path.resolve(__dirname, 'src/assets');
       const assetsTarget = path.resolve(__dirname, 'dist/assets');
-      
+
       // 确保目标目录存在
       if (!fs.existsSync(assetsTarget)) {
         fs.mkdirSync(assetsTarget, { recursive: true });
@@ -117,4 +117,4 @@ export default defineConfig({
       }
     }
   }
-}); 
+});
